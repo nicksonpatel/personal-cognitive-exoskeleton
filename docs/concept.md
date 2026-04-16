@@ -27,14 +27,23 @@ A personal system that:
 ### Monitor Before Automate
 You can't encode rules you haven't discovered. The monitor comes first — weeks of data collection before any automation. Resist the urge to build the orchestrator early.
 
-### Options, Not Typing
-Freeform journaling dies within days. Every interaction with the monitor should be structured: tap-able options, multiple choice, quick selections. The system should propose the likely reason, and you confirm or correct. This gives structured, learnable data with near-zero friction.
+### Options, Not Typing — With a Smart Default
+Freeform journaling dies within days. Every interaction with the monitor should be structured: tap-able options, multiple choice, quick selections. But a blank multiple-choice form also dies. The monitor must **propose the most likely answer first** — you confirm or correct. This means the monitor needs enough intelligence to make a confident guess before asking. A dumb form adds friction. A smart form that's usually right adds almost none.
 
 ### Capture Decomposition, Not Just Delegation
 The real intelligence isn't "I used Claude for this." It's "I broke this vague product idea into 3 research questions, validated the market first, then scoped the MVP." The monitor must capture the *decomposition* step — the moment before you even touch an agent.
 
 ### Rules Should Decay
 Extracted patterns will be overfitted to recent projects. Rules that haven't been validated recently should lose confidence and eventually get challenged or retired.
+
+### Hard Minimum Before Rule Extraction
+The synthesizer must not surface rules before enough data exists. Proposing rules too early creates two failure modes: you trust them (bad — they're overfitted) or you distrust everything it proposes (and stop using it). A hard minimum of **4–6 weeks of pure observation** should be enforced before any rule is surfaced. This discipline must be built into the system, not left to willpower.
+
+### Contextual Triggers Are the Signal
+Contradictory patterns — "sometimes I research first, sometimes I build first" — are not noise to resolve. They're the actual signal. The difference isn't what you did, it's what context triggered which approach. Every log entry must capture the **contextual trigger**: what made this situation feel like a research-first moment vs. a build-first moment? That's where the orchestrator intelligence lives.
+
+### Close the Loop with Outcome Quality
+Logging goal → decomposition → agent choice → reasoning is incomplete without outcome feedback. Without it, you're encoding your habits, not your *good* habits. Every session must close with outcome quality — and ideally, whether you actually used the output downstream.
 
 ## What This Is NOT
 
@@ -43,11 +52,23 @@ Extracted patterns will be overfitted to recent projects. Rules that haven't bee
 - **Not a task manager** — it doesn't track your TODO list, it tracks your *reasoning*
 - **Not a general product** (yet) — it's built for one user: you
 
+## Design Commitments (Resolved)
+
+These were open questions but have been decided:
+
+**Breakpoints:** The monitor fires at these specific moments:
+1. When you open a new chat with a specific purpose (not exploratory/idle)
+2. When you switch tools mid-task — this is a routing decision signal
+3. When you copy output from one agent into another — this is a handoff moment, rich with intent
+4. When you abandon something and restart — the pivot is where learning is richest
+
+**Rule extraction minimum:** 4–6 weeks of pure observation before any rule is proposed. Hard-coded, not advisory.
+
+**Monitor posture:** The monitor proposes first, you confirm or correct. Never blank forms.
+
 ## Open Questions
 
-- What are the right breakpoints to intercept? (Before new chat? After tool switch? On context shift?)
 - How much latency/friction is acceptable before it kills adoption?
 - What's the minimum viable log entry? (Too sparse = useless, too rich = abandoned)
-- When does the system have enough data to propose its first orchestration rule?
-- How do you handle contradictory patterns? (Sometimes you research first, sometimes you build first — context matters)
-- Should the monitor be passive (watches and asks after) or active (intercepts before)?
+- How does the monitor detect breakpoints automatically vs. requiring manual trigger? (Start with manual, earn automation)
+- How does outcome quality decay affect rule confidence over time — is it time-based, usage-based, or explicit challenge?

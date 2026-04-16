@@ -26,7 +26,8 @@ Each entry represents one orchestration decision or action.
     "type": "decompose | delegate | switch_tool | reformulate | escalate | pivot | complete",
     "description": "Broke goal into 3 sub-tasks: research competitors, design layout, implement",
     "tool_or_agent": "claude | gpt | copilot | perplexity | custom_agent | manual | other",
-    "tool_reason": "better_at_task | has_context | speed | cost | habit | only_option"
+    "tool_reason": "better_at_task | has_context | speed | cost | habit | only_option",
+    "contextual_trigger": "goal_was_fuzzy | prior_attempt_failed | deadline_pressure | domain_unfamiliar | output_will_be_shared | iterating_on_existing | other"
   },
 
   "context": {
@@ -40,6 +41,7 @@ Each entry represents one orchestration decision or action.
   "outcome": {
     "status": "completed | partial | abandoned | pivoted",
     "quality": "good | acceptable | poor | unknown",
+    "output_used": true,
     "would_repeat": "yes | mostly | differently",
     "notes": "optional freeform"
   }
@@ -81,6 +83,19 @@ Why you chose this particular tool/agent:
 - **cost** — Cheaper option
 - **habit** — Default choice, no strong reason
 - **only_option** — No alternative available
+
+### action.contextual_trigger
+What about *this situation specifically* made you choose this approach right now. This is the most important field — contradictory patterns across sessions (research-first sometimes, build-first other times) are not noise. They're explained by the trigger. Capturing this is what separates habit-encoding from intelligence-encoding:
+- **goal_was_fuzzy** — You didn't know what you wanted yet, so you couldn't build
+- **prior_attempt_failed** — Something already didn't work, so you changed approach
+- **deadline_pressure** — Speed mattered more than thoroughness
+- **domain_unfamiliar** — You needed to learn before you could act
+- **output_will_be_shared** — Higher quality bar required more deliberate approach
+- **iterating_on_existing** — Building on something already in progress, context was available
+- **other** — Freeform note
+
+### outcome.output_used
+Whether the output of this task was actually used downstream. This closes the quality loop — without it, you only know your habits, not your *good* habits. An output marked `quality: good` but `output_used: false` is a different signal than one that was actually shipped or built on.
 
 ## Session Structure
 
@@ -126,15 +141,19 @@ Entry 6: action=complete, outcome=completed, quality=good, would_repeat=yes
 
 Each field maps to a quick question the monitor asks:
 
-| Field | Question | Options |
-|---|---|---|
-| goal.type | What kind of task? | research / build / validate / debug / explore / plan |
-| goal.clarity | How clear is the goal? | clear / somewhat / fuzzy |
-| action.type | What did you just do? | decompose / delegate / switch / reformulate / pivot |
-| action.tool_reason | Why this tool? | better at it / has context / speed / cost / habit |
-| confidence | How confident are you? | high / medium / low |
-| outcome.status | How'd it go? | completed / partial / abandoned / pivoted |
-| outcome.would_repeat | Same approach next time? | yes / mostly / differently |
+The monitor **proposes a default answer for each question** based on context (recent tool, previous session patterns, session state). You confirm or correct. A blank form is unacceptable.
+
+| Field | Question | Monitor's Default Guess | Options |
+|---|---|---|---|
+| goal.type | What kind of task? | inferred from session start | research / build / validate / debug / explore / plan |
+| goal.clarity | How clear is the goal? | `fuzzy` if first attempt | clear / somewhat / fuzzy |
+| action.type | What did you just do? | inferred from breakpoint type | decompose / delegate / switch / reformulate / pivot |
+| action.tool_reason | Why this tool? | last used reason for this tool | better at it / has context / speed / cost / habit |
+| action.contextual_trigger | What made you do it this way now? | none (always ask) | fuzzy goal / prior fail / deadline / unfamiliar / sharing / iterating |
+| confidence | How confident are you? | `medium` | high / medium / low |
+| outcome.status | How'd it go? | none (always ask at session end) | completed / partial / abandoned / pivoted |
+| outcome.output_used | Did you use the output? | `true` | yes / no / partially |
+| outcome.would_repeat | Same approach next time? | none (always ask) | yes / mostly / differently |
 
 ## Storage
 
